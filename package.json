@@ -1,0 +1,20 @@
+{
+  "name": "overlay-manager",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron ."
+  },
+  "keywords": [],
+  "author": "Henrik Ruan Santos de Souza <henrik.ruan4@gmail.com>",
+  "license": "ISC",
+  "description": "Render multiple overlays on your screen 😊",
+  "devDependencies": {
+    "electron": "^33.2.1"
+  },
+  "dependencies": {
+    "electron-store": "^10.0.0"
+  }
+}
