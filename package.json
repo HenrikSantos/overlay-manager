@@ -1,20 +1,33 @@
 {
   "name": "overlay-manager",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron ."
+    "start": "electron .",
+    "package": "electron-builder build --win --x64 --ia32"
   },
-  "keywords": [],
+  "keywords": [
+    "electron",
+    "overlay",
+    "manager",
+    "controller"
+  ],
   "author": "Henrik Ruan Santos de Souza <henrik.ruan4@gmail.com>",
-  "license": "ISC",
+  "license": "MIT",
   "description": "Render multiple overlays on your screen 😊",
   "devDependencies": {
-    "electron": "^33.2.1"
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
   },
   "dependencies": {
     "electron-store": "^10.0.0"
-  }
+  },
+  "productName": "Overlay Manager",
+  "build": {
+    "appId": "com.HenrikSantos.OverlayManager",
+    "files": "!build-assets${/*}"
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
