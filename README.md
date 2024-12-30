@@ -83,6 +83,10 @@ Made with [Electron](https://www.electronjs.org/pt/).
    ```bash
    npm install
    ```
+   or
+   ```bash
+   yarn
+   ```
 
 ### Running
 

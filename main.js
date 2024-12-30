@@ -1,4 +1,11 @@
-import { app, BrowserWindow, ipcMain, Tray, Menu } from "electron";
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  Tray,
+  Menu,
+  Notification,
+} from "electron";
 import Store from "electron-store";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -12,6 +19,7 @@ class OverlayManager {
     this.controlWindow = null;
     this.tray = null;
     this.store = new Store();
+    this.isQuitting = false;
 
     this.initApp();
     this.setupIpcHandlers();
@@ -39,7 +47,13 @@ class OverlayManager {
         click: () => this.showControlWindow(),
       },
       { type: "separator" },
-      { label: "Close", click: () => app.quit() },
+      {
+        label: "Close",
+        click: () => {
+          this.isQuitting = true;
+          app.quit();
+        },
+      },
     ]);
 
     this.tray.setToolTip("Overlay Manager");
@@ -70,8 +84,14 @@ class OverlayManager {
     });
 
     this.controlWindow.on("close", (event) => {
-      event.preventDefault();
-      this.controlWindow.hide();
+      if (!this.isQuitting) {
+        new Notification({
+          title: "Right click on the tray to reopen control",
+        }).show();
+
+        event.preventDefault();
+        this.controlWindow.hide();
+      }
     });
   }
 
@@ -160,7 +180,7 @@ class OverlayManager {
       const overlayWindow = this.overlays[index];
       if (!overlayWindow) return;
 
-      overlayWindow.setOpacity(opacity); // Ajusta a opacidade
+      overlayWindow.setOpacity(opacity);
     });
 
     ipcMain.on("toggle-interactivity", (_, { index, isInteractive }) => {
