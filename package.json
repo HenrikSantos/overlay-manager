@@ -1,4 +1,5 @@
 {
+  "homepage": "https://henriksantos.github.io/overlay-manager",
   "name": "overlay-manager",
   "private": true,
   "version": "0.0.0",
@@ -7,7 +8,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "gh-pages -d build"
   },
   "dependencies": {
     "i18next": "^24.2.0",
