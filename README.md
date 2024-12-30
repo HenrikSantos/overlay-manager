@@ -12,7 +12,7 @@ Made with [Electron](https://www.electronjs.org/pt/).
 
 ### Website
 
-- [Website WIP]().
+- [Website](https://henriksantos.github.io/overlay-manager/).
 
 ---
 
@@ -136,7 +136,7 @@ O **Gerenciador de Overlays** é um programa desenvolvido com Electron para gere
 
 ### Website
 
-- [Website WIP]().
+- [Website](https://henriksantos.github.io/overlay-manager/).
 
 ---
 
