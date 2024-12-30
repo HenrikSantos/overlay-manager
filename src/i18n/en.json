@@ -1,0 +1,19 @@
+{
+  "title": "Overlay Manager",
+  "description": "Manage overlay windows easily.",
+  "download": "Download the latest release here",
+  "sections": {
+    "title": "Features:",
+    "create": "Create Overlay",
+    "edit": "Edit Overlay",
+    "remove": "Remove Overlay",
+    "toggle": "Toggle Interactivity",
+    "language": "Change Language",
+    "transparency": "Transparency"
+  },
+  "buttons": {
+    "download": "Download",
+    "english": "English",
+    "portuguese": "Portuguese"
+  }
+}

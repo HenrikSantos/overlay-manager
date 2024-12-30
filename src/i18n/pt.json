@@ -1,0 +1,19 @@
+{
+  "title": "Gerenciador de Overlays",
+  "description": "Gerencie janelas de overlay de forma fácil.",
+  "download": "Baixe a versão mais recente aqui",
+  "sections": {
+    "title": "Features:",
+    "create": "Criar Overlay",
+    "edit": "Editar Overlay",
+    "remove": "Remover Overlay",
+    "toggle": "Alternar Interatividade",
+    "language": "Alterar Idioma",
+    "transparency": "Transparência"
+  },
+  "buttons": {
+    "download": "Baixar",
+    "english": "Inglês",
+    "portuguese": "Português"
+  }
+}
