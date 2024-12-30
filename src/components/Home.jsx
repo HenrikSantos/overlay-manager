@@ -18,7 +18,7 @@ function Home() {
         <li>- {t('sections.language')}</li>
         <li>- {t('sections.transparency')}</li>
       </ul>
-      <img className='mt-10' src="./public/usage.png" alt="usage example" />
+      <img className='mt-10' src="./usage.png" alt="usage example" />
     </div>
   );
 }
