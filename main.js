@@ -15,7 +15,8 @@ const __dirname = path.dirname(__filename);
 
 class OverlayManager {
   constructor() {
-    this.overlays = [];
+    this.overlayData = [];
+    this.overlayWindows = [];
     this.controlWindow = null;
     this.tray = null;
     this.store = new Store();
@@ -29,6 +30,7 @@ class OverlayManager {
     app.on("ready", () => {
       this.createTray();
       this.createControlWindow();
+      this.loadOverlays();
     });
 
     app.on("window-all-closed", () => {
@@ -81,6 +83,8 @@ class OverlayManager {
 
     this.controlWindow.once("ready-to-show", () => {
       this.controlWindow.show();
+
+      this.sendOverlaysToControl();
     });
 
     this.controlWindow.on("close", (event) => {
@@ -104,7 +108,13 @@ class OverlayManager {
     }
   }
 
-  createOverlay({ x, y, width, height, url }) {
+  sendOverlaysToControl() {
+    if (this.controlWindow && !this.controlWindow.isDestroyed()) {
+      this.controlWindow.webContents.send("update-overlays", this.overlayData);
+    }
+  }
+
+  createOverlay({ x, y, width, height, url, opacity = 1 }) {
     const overlayWindow = new BrowserWindow({
       x,
       y,
@@ -121,42 +131,52 @@ class OverlayManager {
 
     overlayWindow.loadURL(url || "about:blank");
     overlayWindow.setIgnoreMouseEvents(true);
+    overlayWindow.setOpacity(opacity);
 
-    overlayWindow.on("resize", () => this.syncOverlayBounds(overlayWindow));
-    overlayWindow.on("move", () => this.syncOverlayBounds(overlayWindow));
+    const overlayIndex = this.overlayData.length;
+    this.overlayData.push({ x, y, width, height, url, opacity });
+    this.overlayWindows.push(overlayWindow);
 
-    this.overlays.push(overlayWindow);
-    this.updateOverlaysInControl();
+    overlayWindow.on("resize", () => this.syncOverlayBounds(overlayIndex));
+    overlayWindow.on("move", () => this.syncOverlayBounds(overlayIndex));
+
+    this.sendOverlaysToControl();
+    this.saveOverlays();
   }
 
   removeOverlay(index) {
-    if (this.overlays[index]) {
-      this.overlays[index].close();
-      this.overlays.splice(index, 1);
-      this.updateOverlaysInControl();
+    if (this.overlayWindows[index]) {
+      this.overlayWindows[index].close();
+      this.overlayWindows.splice(index, 1);
+      this.overlayData.splice(index, 1);
+      this.sendOverlaysToControl();
+      this.saveOverlays();
     }
   }
 
-  syncOverlayBounds(overlayWindow) {
-    const index = this.overlays.indexOf(overlayWindow);
-    if (index === -1 || !this.controlWindow) return;
-
-    const bounds = overlayWindow.getBounds();
-    this.controlWindow.webContents.send("sync-overlay-bounds", {
-      index,
-      ...bounds,
-    });
+  saveOverlays() {
+    this.store.set("overlays", this.overlayData);
   }
 
-  updateOverlaysInControl() {
-    if (this.controlWindow) {
-      const overlaysInfo = this.overlays.map((overlay, index) => ({
+  loadOverlays() {
+    const savedOverlays = this.store.get("overlays", []);
+    savedOverlays.forEach((data) => this.createOverlay(data));
+  }
+
+  syncOverlayBounds(index) {
+    if (!this.controlWindow || !this.overlayWindows[index]) return;
+
+    const bounds = this.overlayWindows[index].getBounds();
+    this.overlayData[index] = { ...this.overlayData[index], ...bounds };
+
+    if (this.controlWindow && !this.controlWindow.isDestroyed()) {
+      this.controlWindow.webContents.send("sync-overlay-bounds", {
         index,
-        ...overlay.getBounds(),
-        url: overlay.webContents.getURL(),
-      }));
-      this.controlWindow.webContents.send("update-overlays", overlaysInfo);
+        ...bounds,
+      });
     }
+
+    this.saveOverlays();
   }
 
   setupIpcHandlers() {
@@ -165,11 +185,31 @@ class OverlayManager {
     });
 
     ipcMain.on("update-overlay", (_, { index, x, y, width, height, url }) => {
-      const overlayWindow = this.overlays[index];
+      const overlayWindow = this.overlayWindows[index];
       if (!overlayWindow) return;
 
-      overlayWindow.setBounds({ x, y, width, height });
-      if (url) overlayWindow.loadURL(url);
+      if (
+        x !== undefined &&
+        y !== undefined &&
+        width !== undefined &&
+        height !== undefined
+      ) {
+        overlayWindow.setBounds({ x, y, width, height });
+        this.overlayData[index] = {
+          ...this.overlayData[index],
+          x,
+          y,
+          width,
+          height,
+        };
+      }
+
+      if (url) {
+        overlayWindow.loadURL(url);
+        this.overlayData[index].url = url;
+      }
+
+      this.saveOverlays();
     });
 
     ipcMain.on("remove-overlay", (_, index) => {
@@ -177,26 +217,21 @@ class OverlayManager {
     });
 
     ipcMain.on("update-opacity", (_, { index, opacity }) => {
-      const overlayWindow = this.overlays[index];
+      const overlayWindow = this.overlayWindows[index];
       if (!overlayWindow) return;
 
       overlayWindow.setOpacity(opacity);
+      this.overlayData[index].opacity = opacity;
+      this.saveOverlays();
     });
 
     ipcMain.on("toggle-interactivity", (_, { index, isInteractive }) => {
-      const overlayWindow = this.overlays[index];
+      const overlayWindow = this.overlayWindows[index];
       if (!overlayWindow) return;
 
       overlayWindow.setIgnoreMouseEvents(!isInteractive, {
         forward: isInteractive,
       });
-    });
-
-    ipcMain.on("update-opacity", (_, { index, opacity }) => {
-      const overlayWindow = this.overlays[index];
-      if (!overlayWindow) return;
-
-      overlayWindow.setOpacity(opacity);
     });
   }
 }
