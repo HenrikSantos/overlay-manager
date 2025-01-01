@@ -4,139 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Overlay Manager</title>
-    <style>
-        :root {
-            --primary-color: #2563eb;
-            --bg-color: #f8fafc;
-            --text-color: #1e293b;
-            --border-color: #e2e8f0;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            padding: 2rem;
-            line-height: 1.5;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-
-        #language-toggle {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 0.375rem;
-            cursor: pointer;
-            font-size: 0.875rem;
-            transition: opacity 0.2s;
-        }
-
-        #language-toggle:hover {
-            opacity: 0.9;
-        }
-
-        button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 0.375rem;
-            cursor: pointer;
-            font-size: 0.875rem;
-            transition: opacity 0.2s;
-        }
-
-        button:hover {
-            opacity: 0.9;
-        }
-
-        #overlays-list {
-            margin-top: 1.5rem;
-            display: grid;
-            gap: 1rem;
-        }
-
-        .overlay-config {
-            background-color: white;
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            border: 1px solid var(--border-color);
-        }
-
-        .overlay-config h2 {
-            font-size: 1.25rem;
-            margin-bottom: 1rem;
-        }
-
-        .form-group {
-            display: grid;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        }
-
-        .coordinate-pair {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .coordinate-pair .input-group {
-            flex: 1;
-        }
-
-        label {
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-
-        input[type="text"],
-        input[type="number"] {
-            padding: 0.5rem;
-            border: 1px solid var(--border-color);
-            border-radius: 0.375rem;
-            font-size: 0.875rem;
-        }
-
-        .controls {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 1rem;
-        }
-
-        .remove-btn {
-            background-color: #dc2626;
-        }
-
-        .interactive-toggle {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="stylesheet.css" media="screen" />
 </head>
 
 <body>
@@ -181,13 +49,13 @@
 
         let currentLanguage = "en";
 
-        const overlayTemplate = ({ index, x, y, width, height, url }) => `
-            <div class="overlay-config">
+        const overlayTemplate = ({ index, x, y, width, height, url, opacity = 1 }) => `
+            <div class="overlay-config" data-index="${index}">
                 <h2>Overlay ${index + 1}</h2>
                 <div class="form-group">
                     <div class="input-group">
                         <label for="url-${index}">${translations[currentLanguage].url}</label>
-                        <input type="text" id="url-${index}" value="${url}">
+                        <input type="text" id="url-${index}" value="${url || ''}" placeholder="https://google.com">
                     </div>
                     <div class="coordinate-pair">
                         <div class="input-group">
@@ -211,9 +79,15 @@
                     </div>
                     <div class="input-group">
                         <label for="opacity-${index}">${translations[currentLanguage].transparency}</label>
-                        <input type="range" id="opacity-${index}" min="0" max="100" value="100" oninput="updateOpacity(${index}, this.value)">
+                        <input 
+                            type="range" 
+                            id="opacity-${index}" 
+                            min="0" 
+                            max="100" 
+                            value="${opacity * 100}"
+                            oninput="updateOpacity(${index}, this.value)"
+                        >
                     </div>
-
                 </div>
                 <div class="controls">
                     <button onclick="updateOverlay(${index})">${translations[currentLanguage].apply}</button>
@@ -226,30 +100,63 @@
             </div>
         `;
 
+        function validateUrl(url) {
+            if (!url) return true;
+            try {
+                new URL(url);
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
         document.getElementById('create-overlay').addEventListener('click', () => {
-            ipcRenderer.send('create-overlay', { x: 100, y: 100, width: 800, height: 600, url: '' });
-        });
-
-        ipcRenderer.on('update-overlays', (_, overlays) => {
-            const overlaysList = document.getElementById('overlays-list');
-            overlaysList.innerHTML = overlays.map(overlayTemplate).join('');
-        });
-
-        ipcRenderer.on('sync-overlay-bounds', (_, { index, x, y, width, height }) => {
-            document.getElementById(`x-${index}`).value = x;
-            document.getElementById(`y-${index}`).value = y;
-            document.getElementById(`width-${index}`).value = width;
-            document.getElementById(`height-${index}`).value = height;
+            ipcRenderer.send('create-overlay', {
+                x: 100,
+                y: 100,
+                width: 800,
+                height: 600,
+                url: '',
+                opacity: 1
+            });
         });
 
         function updateOverlay(index) {
+            const url = document.getElementById(`url-${index}`).value;
+
+
+            const errorElement = document.querySelector(`#url-${index}-error`);
+            if (errorElement) errorElement.remove();
+
+
+            if (!validateUrl(url)) {
+                const inputGroup = document.getElementById(`url-${index}`).parentElement;
+                const errorMessage = document.createElement('div');
+                errorMessage.id = `url-${index}-error`;
+                errorMessage.className = 'error-message';
+                errorMessage.textContent = 'Invalid URL format';
+                inputGroup.appendChild(errorMessage);
+                return;
+            }
+
             const x = parseInt(document.getElementById(`x-${index}`).value, 10);
             const y = parseInt(document.getElementById(`y-${index}`).value, 10);
             const width = parseInt(document.getElementById(`width-${index}`).value, 10);
             const height = parseInt(document.getElementById(`height-${index}`).value, 10);
-            const url = document.getElementById(`url-${index}`).value;
 
-            ipcRenderer.send('update-overlay', { index, x, y, width, height, url });
+            ipcRenderer.send('update-overlay', {
+                index,
+                x,
+                y,
+                width,
+                height,
+                url
+            });
+        }
+
+        function updateOpacity(index, value) {
+            const opacity = value / 100;
+            ipcRenderer.send('update-opacity', { index, opacity });
         }
 
         function removeOverlay(index) {
@@ -263,13 +170,9 @@
         function toggleLanguage() {
             currentLanguage = currentLanguage === "en" ? "pt" : "en";
             updateTranslations();
+            const button = document.getElementById("language-toggle");
+            button.textContent = currentLanguage === "en" ? "PT" : "EN";
         }
-
-        function updateOpacity(index, value) {
-            const opacity = value / 100;
-            ipcRenderer.send('update-opacity', { index, opacity });
-        }
-
 
         function updateTranslations() {
             const texts = translations[currentLanguage];
@@ -277,22 +180,42 @@
             document.getElementById("create-overlay").innerText = texts.addOverlay;
 
             const overlays = document.querySelectorAll(".overlay-config");
-            overlays.forEach((overlay, index) => {
+            overlays.forEach((overlay) => {
+                const index = overlay.dataset.index;
+                overlay.querySelector(`label[for='url-${index}']`).innerText = texts.url;
                 overlay.querySelector(`label[for='x-${index}']`).innerText = texts.positionX;
                 overlay.querySelector(`label[for='y-${index}']`).innerText = texts.positionY;
                 overlay.querySelector(`label[for='width-${index}']`).innerText = texts.width;
                 overlay.querySelector(`label[for='height-${index}']`).innerText = texts.height;
-                overlay.querySelector(`label[for='url-${index}']`).innerText = texts.url;
                 overlay.querySelector(`label[for='opacity-${index}']`).innerText = texts.transparency;
-                overlay.querySelector("button").innerText = texts.apply;
-                overlay.querySelector(".remove-btn").innerText = texts.remove;
                 overlay.querySelector(`label[for='interactive-${index}']`).innerText = texts.interactive;
-            });
 
-            document.getElementById("language-toggle").innerText = currentLanguage === "en" ? "PT" : "EN";
+                const applyButton = overlay.querySelector("button:not(.remove-btn)");
+                const removeButton = overlay.querySelector(".remove-btn");
+
+                if (applyButton) applyButton.innerText = texts.apply;
+                if (removeButton) removeButton.innerText = texts.remove;
+            });
         }
 
-        document.addEventListener("DOMContentLoaded", updateTranslations);
+        ipcRenderer.on('update-overlays', (_, overlays) => {
+            const overlaysList = document.getElementById('overlays-list');
+            overlaysList.innerHTML = overlays.map((overlay, index) =>
+                overlayTemplate({ ...overlay, index })
+            ).join('');
+            updateTranslations();
+        });
+
+        ipcRenderer.on('sync-overlay-bounds', (_, { index, x, y, width, height }) => {
+            document.getElementById(`x-${index}`).value = x;
+            document.getElementById(`y-${index}`).value = y;
+            document.getElementById(`width-${index}`).value = width;
+            document.getElementById(`height-${index}`).value = height;
+        });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            updateTranslations();
+        });
     </script>
 </body>
 
