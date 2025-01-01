@@ -90,7 +90,7 @@ class OverlayManager {
     this.controlWindow.on("close", (event) => {
       if (!this.isQuitting) {
         new Notification({
-          title: "Right click on the tray to reopen control",
+          title: "Right click on the tray to reopen control or close the app",
         }).show();
 
         event.preventDefault();
