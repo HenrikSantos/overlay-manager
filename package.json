@@ -1,12 +1,12 @@
 {
   "name": "overlay-manager",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "electron .",
-    "package": "electron-builder build --win --x64 --ia32"
+    "package": "electron-builder build --win --x64"
   },
   "keywords": [
     "electron",
