@@ -96,10 +96,6 @@ Made with [Electron](https://www.electronjs.org/pt/).
    ```
 2. Access the control interface to manage your overlays.
 
-## Support
-
-If you encounter issues or have questions, open an issue in this repository or send an email to [support@overlaymanager.com](mailto:support@overlaymanager.com).
-
 ---
 
 ## Contribution
