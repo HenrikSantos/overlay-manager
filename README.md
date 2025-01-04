@@ -63,7 +63,7 @@ Made with [Electron](https://www.electronjs.org/pt/).
 
 ---
 
-## How to Use
+## How to install the project
 
 ### Requirements
 
@@ -183,7 +183,7 @@ O **Gerenciador de Overlays** é um programa desenvolvido com Electron para gere
 
 ---
 
-## Como Usar
+## Como Instalar O Projeto
 
 ### Requisitos
 
